@@ -1,52 +1,52 @@
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
 from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import JSONParser, FileUploadParser
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
-from .models import DonorProfile
-from .ml_model import train_model, predict_donation
 
-@api_view(['POST'])
-def train(request):
-    """Train ML Model using CSV"""
-    if 'file' not in request.FILES:
-        return Response({'error': 'No file uploaded'}, status=400)
+from .ml_model import  predict_donation
+import logging
 
-    csv_file = request.FILES['file']
-    
-    try:
-        train_model(csv_file)
-        return Response({'message': 'Model trained successfully'})
-    except Exception as e:
-        return Response({'error': str(e)}, status=400)
 
 @api_view(['POST'])
 @parser_classes([JSONParser])
 def predict(request):
     """Predict next donation amount and date"""
     try:
-        donor_id = request.data.get('donor_id')
-        donor = get_object_or_404(DonorProfile, donor_id=donor_id)
+        # Get Request Data
+        data = request.data
         
-        predicted_donation, next_donation_date = predict_donation(
-            donor.total_donations,
-            float(donor.total_amount),
-            float(donor.avg_donation),
-            donor.frequency,
-            donor.last_donation_date,
-            donor.preferred_payment_method,
-            donor.recurring_donor,
-            donor.campaign
+        logging.info(f"Received data: {data}")
+        
+        logging.info("Recurring donor: %s",  convert_string_to_bool(data.get('recurring_donor') ))
+        
+        # Make a prediction
+        predicted_donation, predicted_date = predict_donation(
+        total_donations= int(data.get('total_donations')) , 
+        total_amount= int(data.get('total_amount')), 
+        avg_donation= int( data.get('avg_donation')), 
+        frequency= int(data.get('frequency')),
+        last_donation_date= data.get('last_donation_date'), 
+        preferred_payment_method= data.get('preferred_payment_method'),
+        recurring_donor= convert_string_to_bool(data.get('recurring_donor')) , 
+        campaign=str( data.get('campaign'))
         )
         
-        donor.predicted_donation = predicted_donation
-        donor.next_donation_date = next_donation_date
-        donor.save()
-
-        return Response({
-            'donor_id': donor_id, 
+        responseData = {
             'predicted_donation': predicted_donation,
-            'next_donation_date': next_donation_date
-        })
+            'next_donation_date': predicted_date
+        }
+       
+
+        return Response(
+            data=responseData,
+            status=200
+            )
     except Exception as e:
         return Response({'error': str(e)}, status=400)
+
+def convert_string_to_bool(value):
+    if value.lower() == 'true':
+        return True
+    elif value.lower() == 'false':
+        return False
+    else:
+        return None

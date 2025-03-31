@@ -17,7 +17,7 @@ def load_data(csv_file):
     df = pd.read_csv(csv_file)
     
     # Ensure necessary columns exist
-    required_columns = ['donor_id', 'total_donations', 'total_amount', 'avg_donation', 'frequency',
+    required_columns = [ 'total_donations', 'total_amount', 'avg_donation', 'frequency',
                         'last_donation_date', 'preferred_payment_method', 'recurring_donor', 'campaign',
                         'predicted_donation', 'next_donation_date']
     
@@ -32,7 +32,7 @@ def load_data(csv_file):
     df['days_since_last_donation'] = (datetime.today() - df['last_donation_date']).dt.days
     
     # Drop unnecessary columns
-    df = df.drop(columns=['donor_id', 'last_donation_date'])
+    df = df.drop(columns=['last_donation_date'])
     
     return df
 
@@ -117,8 +117,13 @@ if __name__ == "__main__":
     
     # Make a prediction
     predicted_donation, predicted_date = predict_donation(
-        total_donations=10, total_amount=200, avg_donation=50, frequency=2,
-        last_donation_date='2023-01-01', preferred_payment_method='CreditCard',
-        recurring_donor=True, campaign='A'
+        total_donations=10, 
+        total_amount=2000, 
+        avg_donation=50, 
+        frequency=2,
+        last_donation_date='2023-01-01', 
+        preferred_payment_method='Mpesa',
+        recurring_donor=True, 
+        campaign="1"
     )
     logging.info(f"Predicted Donation: {predicted_donation}, Predicted Date: {predicted_date}")

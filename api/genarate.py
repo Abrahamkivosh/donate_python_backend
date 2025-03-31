@@ -6,12 +6,11 @@ import random
 def generate_donation_data(file_name, num_records=400):
     """Generate a synthetic donation data CSV file."""
     # Define possible values for categorical fields
-    payment_methods = ['CreditCard', 'PayPal', 'BankTransfer']
-    campaigns = ['A', 'B', 'C']
+    payment_methods = ['Cash','Mpesa']
+    campaigns = [1, 2 ]
     
     # Generate synthetic data
     data = {
-        'donor_id': range(1, num_records + 1),
         'total_donations': np.random.randint(1, 50, size=num_records),
         'total_amount': np.random.uniform(100, 5000, size=num_records).round(2),
         'avg_donation': np.random.uniform(10, 500, size=num_records).round(2),
